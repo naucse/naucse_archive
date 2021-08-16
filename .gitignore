@@ -1,0 +1,3 @@
+*.pyc
+/naucse_archive.egg-info
+/archived/
