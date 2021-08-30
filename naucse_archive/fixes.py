@@ -40,3 +40,11 @@ def find_prerequisites(reqs_in):
     if any(line.startswith('markupsafe==1.0') for line in reqs_set):
         result.append('setuptools < 46')
     return '\n'.join(result)
+
+def add_serials(course):
+    for i, session in enumerate(course['sessions'], start=1):
+        if 'serial' in session:
+            raise ValueError(
+                'add_serials should be called on courses using API 0.0,'
+                + ' without any "serial" numbers for sessions')
+        session['serial'] = str(i)

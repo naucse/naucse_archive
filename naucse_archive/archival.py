@@ -89,7 +89,8 @@ def archive(course_def, data_path, output_path, cache_path, container_command):
 
     return slug, {
         'path': slug,
-        'source': course_def['source'],
+        'url': '<url here>',
+        'branch': 'main',
     }
 
 
@@ -318,7 +319,19 @@ def save_course(container_command, worktree, course_def, commit_id, image_name, 
     info = get_course(container_command, worktree, image_name, slug)
     course = info['course']
     course.setdefault('etag', commit_id)
-    course.setdefault('source', course_def['source'])
+
+    # Update the course data to API 0.4
+    version = tuple(info['api_version'])
+    if version >= (0, 4):
+        raise ValueError(
+            f'API version {version} is too new. For this course, '
+            + 'use `python -m naucse_render compile` directly.'
+        )
+    if version < (0, 1):
+        fixes.add_serials(course)
+    course.setdefault('timezone', 'Europe/Prague')  # mandatory since 0.3
+    info['api_version'] = (0, 4)
+
     #print(json.dumps(info, indent=2))
     course_vars = course.get('vars', {})
     lesson_slugs = set()
@@ -332,8 +345,13 @@ def save_course(container_command, worktree, course_def, commit_id, image_name, 
         lesson_slugs, course_vars,
     )
 
+    course.setdefault('edit_info', {
+        'url': course_def['source']['repo'],
+        'branch': course_def['source']['branch'],
+    })
+
     with open(result_path / 'course.json', 'w', encoding='utf-8') as f:
-        json.dump(info, f, sort_keys=True, ensure_ascii=True)
+        json.dump(info, f, sort_keys=True, ensure_ascii=True, indent=1)
 
     return commit_id
 
@@ -359,7 +377,7 @@ def save_lessons(container_command, worktree, image_name, result_path, lesson_sl
                 content_path.write_text(content)
                 lesson_slugs.update(fixes.find_lesson_slugs(content))
                 page['content'] = {
-                    'file': str(content_path.relative_to(result_path)),
+                    'path': str(content_path.relative_to(result_path)),
                 }
                 for index, solution in enumerate(page.get('solutions', ())):
                     content = solution.pop('content')
@@ -367,7 +385,7 @@ def save_lessons(container_command, worktree, image_name, result_path, lesson_sl
                     content_path.write_text(content)
                     lesson_slugs.update(fixes.find_lesson_slugs(content))
                     solution['content'] = {
-                        'file': str(content_path.relative_to(result_path)),
+                        'path': str(content_path.relative_to(result_path)),
                     }
             for name, info in lesson['static_files'].items():
                 static_dir = joinpath(outpath, 'static')

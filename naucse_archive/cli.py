@@ -66,4 +66,7 @@ def main(data_path, output_path, course_slugs, container_tool, cache_path):
             raise
         result[slug] = info
 
+    print()
+    print('Add this to courses.yml:')
+    print()
     print(yaml.safe_dump(result))
