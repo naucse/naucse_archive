@@ -369,8 +369,8 @@ def save_lessons(container_command, worktree, image_name, result_path, lesson_sl
             _done_slugs.add(slug)
             if '.' in slug:
                 raise ValueError(slug)
-            outpath = joinpath(result_path / 'lessons', slug)
-            outpath.mkdir(parents=True, exist_ok=True)
+            outpath = joinpath(result_path / 'lessons', slug.lower())
+            outpath.mkdir(parents=True, exist_ok=False)
             for name, page in lesson['pages'].items():
                 content = page.pop('content')
                 content_path = joinpath(outpath, f'{name}.html')
@@ -391,8 +391,12 @@ def save_lessons(container_command, worktree, image_name, result_path, lesson_sl
                 static_dir = joinpath(outpath, 'static')
                 static_dir.mkdir(parents=True, exist_ok=True)
                 srcpath = joinpath(worktree, info['path'])
+                name = re.sub('[^a-z0-9./_-]+', '-', name.lower())
                 destpath = joinpath(static_dir, name)
+                info['path'] = str(destpath.relative_to(result_path))
                 destpath.parent.mkdir(parents=True, exist_ok=True)
+                if destpath.exists():
+                    raise ValueError(f'{destpath} already exists')
                 shutil.copy(srcpath, destpath)
 
             result[slug] = lesson
