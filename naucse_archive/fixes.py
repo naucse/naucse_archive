@@ -42,7 +42,11 @@ def find_prerequisites(reqs_in):
     return '\n'.join(result)
 
 def add_serials(course):
+    if len(course['sessions']) <= 1:
+        # Single-session courses: No serial numbers added
+        return
     for i, session in enumerate(course['sessions'], start=1):
+        # More sessions: numbered 1, 2, 3, ...
         if 'serial' in session:
             raise ValueError(
                 'add_serials should be called on courses using API 0.0,'
