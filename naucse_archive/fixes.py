@@ -48,7 +48,11 @@ def add_serials(course):
     for i, session in enumerate(course['sessions'], start=1):
         # More sessions: numbered 1, 2, 3, ...
         if 'serial' in session:
-            raise ValueError(
-                'add_serials should be called on courses using API 0.0,'
-                + ' without any "serial" numbers for sessions')
-        session['serial'] = str(i)
+            if session['serial'] == None:
+                del session['serial']
+            else:
+                raise ValueError(
+                    'add_serials should be called on courses using API 0.0,'
+                    + ' without any "serial" numbers for sessions')
+        else:
+            session['serial'] = str(i)
